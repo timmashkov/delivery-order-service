@@ -1,8 +1,8 @@
 """init_order_order_items
 
-Revision ID: 4169468613e7
+Revision ID: 0d3b9ebb6df6
 Revises:
-Create Date: 2026-09-22 17:45:21.361867
+Create Date: 2026-09-22 18:32:41.244974
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "4169468613e7"
+revision: str = "0d3b9ebb6df6"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -182,6 +182,20 @@ def upgrade() -> None:
         ),
         sa.Column(
             "uuid", sa.UUID(), nullable=False, comment="Уникальный айди записи"
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+            comment="Дата создания",
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+            comment="Дата обновления",
         ),
         sa.ForeignKeyConstraint(
             ["order_uuid"], ["orders.uuid"], ondelete="CASCADE"

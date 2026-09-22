@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .order import Order
 
 
-class OrderItem(_Base, UUIDTableMixin):
+class OrderItem(_Base, UUIDTableMixin, CreatedAtTableMixin, UpdatedAtTableMixin):
     order_uuid: Mapped[UUID] = mapped_column(
         ForeignKey("orders.uuid", ondelete="CASCADE"),
         nullable=False,

@@ -1,4 +1,4 @@
 from .event.model import EventStatusEnum
-from .product.model import ProductDomainModel
+from .order.model import OrderStatusEnum
 
-__all__: tuple[str] = ("EventStatusEnum", "ProductDomainModel", )
+__all__: tuple[str] = ("EventStatusEnum", "OrderStatusEnum", )

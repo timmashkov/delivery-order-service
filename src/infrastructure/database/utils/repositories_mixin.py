@@ -32,7 +32,7 @@ class RepositoryMixin:
             yield write_repository
 
     @asynccontextmanager
-    async def custom_repository(self, ) -> AsyncGenerator[RepositoryT, Any]:
+    async def custom_repository(self) -> AsyncGenerator[RepositoryT, Any]:
         async with self._unit_of_work as uow:
             custom_repository = uow.repositories.custom_repository(repository_type=self._custom_repository)
             yield custom_repository

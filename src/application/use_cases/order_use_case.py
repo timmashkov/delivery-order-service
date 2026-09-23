@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi_filter.contrib.sqlalchemy import Filter
 
-from infrastructure.database import UnitOfWork, RepositoryMixin, Order
+from infrastructure.database import UnitOfWork, RepositoryMixin, Order, OutboxRepository
 
 
 class OrderUseCase(RepositoryMixin):
@@ -22,8 +22,11 @@ class OrderUseCase(RepositoryMixin):
             return result
 
     async def create_new_order(self, **kwargs):
-        async with self.write_repository() as write_repository:
-            return await write_repository.create_object(**kwargs)
+        async with self._unit_of_work as unit_of_work:
+            order_repository = unit_of_work.repositories.write_repository(model=self._model)
+            outbox_repository = OutboxRepository(unit_of_work._session)
+            new_order = await order_repository.create_object(**kwargs)
+            current_event = await outbox_repository.create_event(**kwargs)
 
     async def update_order(self, **kwargs):
         uuid = kwargs.pop("order_uuid")

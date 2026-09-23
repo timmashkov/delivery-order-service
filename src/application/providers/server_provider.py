@@ -1,6 +1,6 @@
 from dishka import Provider, Scope, provide
 
-from application.config import Settings
+from application.settings import Settings
 from application.server import APIServer
 from presentation.routers import order_router, order_item_router
 

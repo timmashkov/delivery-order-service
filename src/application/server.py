@@ -9,7 +9,7 @@ from dishka.integrations.fastapi import inject, setup_dishka
 from fastapi import APIRouter, FastAPI, Request
 from starlette.responses import JSONResponse
 
-from application.config import Settings
+from application.settings import Settings
 from application.providers import ProvidersManager
 
 
@@ -25,16 +25,16 @@ class APIServer:
         self.container: AsyncContainer | None = None
         self._settings = settings
         self._app: FastAPI | None = None
-        self._host = self._settings.host
-        self._port = self._settings.port
+        self._host = self._settings.app.host
+        self._port = self._settings.app.port
         self._routers = routers or []
         self._start_callbacks = start_callbacks or []
         self._stop_callbacks = stop_callbacks or []
 
     def _init_server(self):
-        self._app = FastAPI(title=self._settings.name, lifespan=self._lifespan)
+        self._app = FastAPI(title=self._settings.app.name, lifespan=self._lifespan)
         logging.basicConfig(
-            level=self._settings.log_level,
+            level=self._settings.app.log_level,
             format="%(asctime)s - %(levelname)s - %(message)s",
         )
         self._register_exception_handlers()

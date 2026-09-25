@@ -1,6 +1,7 @@
 from dishka import Provider, Scope, provide
 
-from infrastructure.database import UnitOfWork
+from infrastructure.broker.kafka import KafkaProducer
+from infrastructure.database import UnitOfWork, OutboxRepository
 from application.use_cases import OrderUseCase, OrderItemUseCase
 
 

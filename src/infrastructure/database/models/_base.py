@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Any
+from uuid import UUID
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
@@ -22,5 +25,13 @@ class _Base(DeclarativeBase):
         comment="Дополнительные данные",
     )
 
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    def as_dict(self) -> dict[str, Any]:
+        result_dict = dict()
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+            if isinstance(value, UUID):
+                value = str(value)
+            if isinstance(value, datetime):
+                value = value.isoformat()
+            result_dict[column.name] = value
+        return result_dict

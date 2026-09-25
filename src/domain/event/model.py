@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 
 class EventStatusEnum(Enum):
-    WAITING_FOR_SENDING = "WAITING_FOR_SENDING"
+    PROCESSING = "PROCESSING"
     SENT = "SENT"
     CREATED = "CREATED"
     UNSENT = "UNSENT"
@@ -17,13 +17,17 @@ class EventStatusEnum(Enum):
 class EventDomainModel:
     event_type: str
     data: dict | None
-    entity_id: UUID | None
+    entity_id: UUID
     status: EventStatusEnum = EventStatusEnum.CREATED
-    sent_at: datetime = datetime.now(timezone.utc)
+    sent_at: datetime = datetime.now()
 
     def __post_init__(self) -> None:
         self.uuid: UUID = uuid4()
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now()
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        base_dict = asdict(self)
+        base_dict["uuid"] = str(self.uuid)
+        base_dict["created_at"] = self.created_at
+        base_dict["entity_id"] = str(self.entity_id)
+        return base_dict

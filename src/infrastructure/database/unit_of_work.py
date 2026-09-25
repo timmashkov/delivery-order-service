@@ -10,13 +10,13 @@ from infrastructure.database.repository_factory import RepositoryFactory
 class UnitOfWork:
     def __init__(self, database_gateway: DatabaseGateway) -> None:
         self._session_factory = database_gateway.session
-        self._session: AsyncSession | None = None
+        self.session: AsyncSession | None = None
         self.repositories: RepositoryFactory | None = None
 
     async def __aenter__(self) -> Self:
-        self._session = self._session_factory()
+        self.session = self._session_factory()
 
-        self.repositories = RepositoryFactory(session=self._session)
+        self.repositories = RepositoryFactory(session=self.session)
 
         return self
 
@@ -27,10 +27,10 @@ class UnitOfWork:
             else:
                 await self.commit()
         finally:
-            await self._session.close()
+            await self.session.close()
 
     async def commit(self) -> None:
-        await self._session.commit()
+        await self.session.commit()
 
     async def rollback(self) -> None:
-        await self._session.rollback()
+        await self.session.rollback()

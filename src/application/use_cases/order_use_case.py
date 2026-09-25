@@ -1,7 +1,11 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi_filter.contrib.sqlalchemy import Filter
 
+from domain import OrderDomainModel
+from domain.event.model import EventDomainModel
+from infrastructure.broker.kafka import KafkaProducer
 from infrastructure.database import UnitOfWork, RepositoryMixin, Order, OutboxRepository
 
 
@@ -21,12 +25,24 @@ class OrderUseCase(RepositoryMixin):
             result = await read_repository.get_object_by_uuid(order_uuid)
             return result
 
+    @staticmethod
+    def _prepare_domain_models(**kwargs) -> tuple[OrderDomainModel, EventDomainModel]:
+        new_order_model = OrderDomainModel(**kwargs)
+        new_event_model = EventDomainModel(
+            event_type="create_order",
+            data=new_order_model.to_json(),
+            entity_id=new_order_model.uuid,
+        )
+        return new_order_model, new_event_model
+
     async def create_new_order(self, **kwargs):
+        new_order_model, new_event_model = self._prepare_domain_models(**kwargs)
         async with self._unit_of_work as unit_of_work:
+            outbox_repository = unit_of_work.repositories.custom_repository(OutboxRepository)
             order_repository = unit_of_work.repositories.write_repository(model=self._model)
-            outbox_repository = OutboxRepository(unit_of_work._session)
-            new_order = await order_repository.create_object(**kwargs)
-            current_event = await outbox_repository.create_event(**kwargs)
+            new_order = await order_repository.create_object(**new_order_model.to_dict())
+            await outbox_repository.create_event(**new_event_model.to_dict())
+        return new_order
 
     async def update_order(self, **kwargs):
         uuid = kwargs.pop("order_uuid")

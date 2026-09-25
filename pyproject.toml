@@ -1,6 +1,6 @@
 [project]
 name = "order-service"
-version = "0.0.3"
+version = "0.0.4"
 description = ""
 authors = [
     {name = "timmashkov",email = "bodomizer@yandex.ru"}

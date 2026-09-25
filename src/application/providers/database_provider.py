@@ -19,6 +19,6 @@ class DatabaseProvider(Provider):
 
 
 class UnitOfWorkProvider(Provider):
-    @provide(scope=Scope.REQUEST)
+    @provide(scope=Scope.APP)
     def provide_unit_of_work(self, database_gateway: DatabaseGateway) -> UnitOfWork:
         return UnitOfWork(database_gateway)

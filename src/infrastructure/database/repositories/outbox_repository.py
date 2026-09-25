@@ -1,8 +1,11 @@
+from datetime import datetime
+from typing import Iterable
 from uuid import UUID
 
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from domain import EventStatusEnum
 from infrastructure.database.models import Outbox
 
 
@@ -12,17 +15,26 @@ class OutboxRepository:
         self._session = session
         self._model = Outbox
 
-    async def select_event(self, event_uuid: UUID) -> Outbox | None:
-        query = select(Outbox).where(Outbox.uuid == event_uuid)
-        query = await self._session.execute(query)
-        return query.unique().scalar_one_or_none()
+    async def get_pending_events(self, events_quant: int) -> Iterable[Outbox]:
+        query = (
+            select(self._model)
+            .where(
+                self._model.status == EventStatusEnum.CREATED,
+            )
+            .limit(events_quant)
+            .order_by(self._model.created_at)
+            .with_for_update(skip_locked=True)
+        )
+
+        result = await self._session.execute(query)
+
+        return result.scalars().all()
+
+    async def update_event_status(self, event: Outbox, event_status: EventStatusEnum) -> None:
+        query = update(self._model).where(self._model.uuid == event.uuid).values(status=event_status, sent_at=datetime.now())
+        await self._session.execute(query)
 
     async def create_event(self, **kwargs) -> Outbox | None:
-        query = insert(Outbox).values(**kwargs).returning(Outbox)
-        query = await self._session.execute(query)
-        return query.unique().scalar_one_or_none()
-
-    async def update_event(self,event_uuid: UUID, **kwargs) -> Outbox | None:
-        query = update(Outbox).values(**kwargs).where(Outbox.uuid == event_uuid).returning(Outbox)
-        query = await self._session.execute(query)
-        return query.unique().scalar_one_or_none()
+        query = insert(self._model).values(**kwargs).returning(self._model)
+        result = await self._session.execute(query)
+        return result.unique().scalar_one_or_none()
